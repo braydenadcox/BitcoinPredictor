@@ -1,7 +1,7 @@
 import pandas as pd
 
-df = pd.read_csv('distilbert_sentiment.csv')
+df = pd.read_csv('data/distilbert_scores_only.csv')
 
-df_score_only = df[['positive_score', 'negative_score']]  
+df['combined'] = df['positive_score'] - df['negative_score']
 
-df_score_only.to_csv('distilbert_scores_only.csv', index=False)
+df.to_csv('distilbert_scores_only.csv', index=False)
