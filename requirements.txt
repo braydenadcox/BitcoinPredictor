@@ -1,0 +1,11 @@
+yfinance
+pandas
+matplotlib
+numpy
+scikit-learn
+os
+datetime
+tensorflow
+torch
+transformers
+tqdm
