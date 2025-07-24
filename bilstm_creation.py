@@ -125,13 +125,13 @@ print("\nUniversal BiLSTM Model Summary:")
 universal_model_bilstm.summary()
 
 # =============================================================================
-# Step 6: Split Data into Training and Testing Sets
+# Step 6: Split Data into Training and Testing Sets - This is where I currently am at the moment
 # =============================================================================
 
 split_idx = int(0.8 * len(X))
-X_train = [X[:split_idx], stock_ids[:split_idx], sector_ids[:split_idx]]
+X_train = X[:split_idx]
 y_train = y[:split_idx]
-X_test = [X[split_idx:], stock_ids[split_idx:], sector_ids[split_idx:]]
+X_test = X[split_idx:]
 y_test = y[split_idx:]
 
 # =============================================================================
@@ -191,26 +191,18 @@ preds_bilstm = universal_model_bilstm.predict(X_test)
 ensemble_preds = (preds_lstm + preds_bilstm) / 2.0
 
 # Inverse scale predictions per sample using the corresponding scaler (per ticker)
-def inverse_scale_predictions(preds, X_stock_ids, y_true):
-    final_preds = []
-    final_y = []
-    for i, (pred, stock_id_val) in enumerate(zip(preds, X_stock_ids)):
-        # Get the ticker name from the categorical mapping
-        ticker_name = df['Ticker'].astype('category').cat.categories[stock_id_val]
-        scaler = scalers[ticker_name]
-        # Inverse transform a single prediction
-        pred_inv = scaler.inverse_transform(np.array([[pred[0]]]))
-        final_preds.append(pred_inv[0][0])
-        
-        # Also inverse transform the true value
-        y_inv = scaler.inverse_transform(np.array([[y_true[i]]]))
-        final_y.append(y_inv[0][0])
-    return np.array(final_preds), np.array(final_y)
+def inverse_scale_predictions(preds, y_true, scaler):
+    # Inverse transform both prediction and ground truth
+    preds_inv = scaler.inverse_transform(preds)
+    y_true_inv = scaler.inverse_transform(y_true.reshape(-1, 1))
+    
+    # Flatten for plotting or RMSE calc
+    return preds_inv.flatten(), y_true_inv.flatten()
 
 # For each model, do the inverse transformation
-lstm_preds_final, y_test_final = inverse_scale_predictions(preds_lstm, X_test[1], y_test)
-bilstm_preds_final, _ = inverse_scale_predictions(preds_bilstm, X_test[1], y_test)
-ensemble_preds_final, _ = inverse_scale_predictions(ensemble_preds, X_test[1], y_test)
+lstm_preds_final, y_test_final = inverse_scale_predictions(preds_lstm, y_test, scaler)
+bilstm_preds_final, _ = inverse_scale_predictions(preds_bilstm, y_test, scaler)
+ensemble_preds_final, _ = inverse_scale_predictions(ensemble_preds, y_test, scaler)
 
 def calculate_rmse(actual, predicted):
     return math.sqrt(mean_squared_error(actual, predicted))
