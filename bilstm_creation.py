@@ -113,11 +113,8 @@ def build_universal_model_bilstm(time_steps):
     model.compile(optimizer='adam', loss='mse')
     return model
 
-n_stocks = df['StockID'].nunique()
-n_sectors = df['SectorID'].nunique()
-
-universal_model_lstm = build_universal_model_lstm(time_steps, n_stocks, n_sectors)
-universal_model_bilstm = build_universal_model_bilstm(time_steps, n_stocks, n_sectors)
+universal_model_lstm = build_universal_model_lstm(time_steps)
+universal_model_bilstm = build_universal_model_bilstm(time_steps)
 
 print("-----------------------------------------------------------------------------")
 print("Universal LSTM Model Summary:")
