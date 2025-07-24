@@ -38,7 +38,7 @@ end_date = "2023-12-31"
 time_steps = 60
 
 # Download 'Close' prices
-data = yf.download(ticker, start=start_date, end=end_date)['Close']
+data = yf.download(ticker, start=start_date, end=end_date)
 data = data.reset_index()
 
 # Drops data with missing values (needed for clarity and accuracy)
@@ -222,7 +222,7 @@ print("-------------------------------------------------------------------------
 # =============================================================================
 
 # Get unique tickers from test set stock IDs
-unique_stock_ids = np.unique(X_test[1])
+'''unique_stock_ids = np.unique(X_test[1])
 categories = df['Ticker'].astype('category').cat.categories
 
 plt.figure(figsize=(18, 12))
@@ -250,7 +250,7 @@ for stock_id in unique_stock_ids:
     plot_idx += 1
 
 plt.tight_layout()
-plt.show()
+plt.show()'''
 
 
 
