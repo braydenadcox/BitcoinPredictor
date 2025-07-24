@@ -37,7 +37,7 @@ start_date = "2023-01-01"
 end_date = "2023-12-31"
 time_steps = 60
 
-# Download 'Close' prices for all tickers in one call
+# Download 'Close' prices
 data = yf.download(ticker, start=start_date, end=end_date)['Close']
 data = data.reset_index()
 
@@ -72,63 +72,44 @@ def create_universal_sequences(df, time_steps=60):
 
 time_steps = 60
 X, y = create_universal_sequences(df, time_steps)
-X = X.reshape(X.shape[0], time_steps, 1)  # add feature dimension
+X = X.reshape(X.shape[0], time_steps, 1)
 
 # =============================================================================
 # Step 5: Build Universal Models: One with LSTM and One with BiLSTM
 # =============================================================================
+def build_universal_model_lstm(time_steps):
 
-def build_universal_model_lstm(time_steps, n_stocks, n_sectors):
-    # Inputs for metadata and sequence
-    stock_input = Input(shape=(1,), name='stock_input')
-    sector_input = Input(shape=(1,), name='sector_input')
+    # Input for metadata and sequencing of prices
     price_input = Input(shape=(time_steps, 1), name='price_input')
     
-    # Embedding layers for metadata
-    stock_embed = Embedding(input_dim=n_stocks, output_dim=8)(stock_input)
-    sector_embed = Embedding(input_dim=n_sectors, output_dim=4)(sector_input)
-    stock_embed = Reshape((8,))(stock_embed)
-    sector_embed = Reshape((4,))(sector_embed)
-    
-    # LSTM branch
+    # LSTM section (ESSENTIAL)
     x = LSTM(128, return_sequences=True)(price_input)
     x = Dropout(0.2)(x)
     x = LSTM(64)(x)
     x = Dropout(0.2)(x)
+
+    # LSTM Output variable
+    output = Dense(1)(x)
     
-    # Combine LSTM output with embeddings
-    combined = Concatenate()([x, stock_embed, sector_embed])
-    combined = Dense(32, activation='relu')(combined)
-    output = Dense(1)(combined)
-    
-    model = Model(inputs=[price_input, stock_input, sector_input], outputs=output)
+    model = Model(inputs=[price_input], outputs=output)
     model.compile(optimizer='adam', loss='mse')
     return model
 
-def build_universal_model_bilstm(time_steps, n_stocks, n_sectors):
+def build_universal_model_bilstm(time_steps):
+
     # Inputs for metadata and sequence
-    stock_input = Input(shape=(1,), name='stock_input')
-    sector_input = Input(shape=(1,), name='sector_input')
     price_input = Input(shape=(time_steps, 1), name='price_input')
     
-    # Embedding layers for metadata
-    stock_embed = Embedding(input_dim=n_stocks, output_dim=8)(stock_input)
-    sector_embed = Embedding(input_dim=n_sectors, output_dim=4)(sector_input)
-    stock_embed = Reshape((8,))(stock_embed)
-    sector_embed = Reshape((4,))(sector_embed)
-    
-    # Bidirectional LSTM branch
+    # Bidirectional LSTM (BiLSTM) Section (EVEN MORE ESSENTIAL)
     x = Bidirectional(LSTM(128, return_sequences=True))(price_input)
     x = Dropout(0.2)(x)
     x = Bidirectional(LSTM(64))(x)
     x = Dropout(0.2)(x)
     
-    # Combine BiLSTM output with embeddings
-    combined = Concatenate()([x, stock_embed, sector_embed])
-    combined = Dense(32, activation='relu')(combined)
-    output = Dense(1)(combined)
+    # Combine the BiLSTM output with Dense Layers and Embedding  
+    output = Dense(1)(x)
     
-    model = Model(inputs=[price_input, stock_input, sector_input], outputs=output)
+    model = Model(inputs=[price_input], outputs=output)
     model.compile(optimizer='adam', loss='mse')
     return model
 
