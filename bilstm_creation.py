@@ -33,8 +33,8 @@ tf.random.set_seed(42)
 ticker = "BTC-USD"
 
 # Define date range
-start_date = "2018-01-01"
-end_date = "2025-01-01"
+start_date = "2023-01-01"
+end_date = "2023-12-31"
 time_steps = 60
 
 # Download 'Close' prices
@@ -70,7 +70,7 @@ def create_universal_sequences(df, time_steps=60):
             
     return np.array(X_seq), np.array(y)
 
-time_steps = 120
+time_steps = 60
 X, y = create_universal_sequences(df, time_steps)
 X = X.reshape(X.shape[0], time_steps, 1)
 
@@ -251,6 +251,3 @@ for stock_id in unique_stock_ids:
 
 plt.tight_layout()
 plt.show()'''
-
-
-
