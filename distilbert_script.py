@@ -2,11 +2,8 @@ from transformers import DistilBertTokenizer, DistilBertForSequenceClassificatio
 import torch
 import pandas as pd
 
-print("bad " + "good")
-
 # Load CSV
-df = pd.read_csv('tweetSample.csv')
-print("bad " + "good")
+df = pd.read_csv('data/tweetSample.csv')
 
 # Combine title and summary
 df['combined'] = df['tweet_text'].fillna('')
@@ -19,30 +16,37 @@ negative_scores = []
 tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased-finetuned-sst-2-english")
 model = DistilBertForSequenceClassification.from_pretrained("distilbert-base-uncased-finetuned-sst-2-english")
 
-# Loop through combined text
-for value in df['combined']:
-    print(value)
-    if value:
-        text = value
-        inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True)
+# Sets up integration for GPU if the model is powerful enough (I have an RTX 5080 so it should be okay)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = model.to(device)
+
+# Batch size and model configuration, can easily go up from the base layer of 128
+batch_size = 128
+
+# Preocess the DataFrame in batches
+for i in range(0, len(df), batch_size):
+    batch = df['combined'][i:i + batch_size]
+
+    # Tokenize the batch
+    inputs = tokenizer(batch.tolist(), return_tensors="pt", truncation=True, padding=True, max_length=64).to(device)
+    inputs = {key: value.to(device) for key, value in inputs.items()}
+    
+    # Run model through the batch
+    with torch.no_grad():
         outputs = model(**inputs)
         probs = torch.nn.functional.softmax(outputs.logits, dim=1)
 
-        negative_prob = probs[0][0].item()
-        positive_prob = probs[0][1].item()
+    # Grab positive and negative scores
+    negative_probs = probs[:, 0].cpu().numpy()
+    positive_probs = probs[:, 1].cpu().numpy()
 
-        print(f"Negative: {negative_prob:.4f}")
-        print(f"Positive: {positive_prob:.4f}")
-
-        positive_scores.append(round(positive_prob * 100, 3))
-        negative_scores.append(round(negative_prob * 100, 3))
-    else:
-        positive_scores.append(None)
-        negative_scores.append(None)
+    # Add the batch results to the lists
+    positive_scores.extend(positive_probs * 100)
+    negative_scores.extend(negative_probs * 100)
 
 # Assign scores to dataframe
 df['positive_score'] = positive_scores
 df['negative_score'] = negative_scores
 
 # Save to CSV
-df.to_csv('distilbert_sentiment.csv', index=False)
+df.to_csv('distilbert_finetuned_sentiment.csv', index=False)
