@@ -125,14 +125,16 @@ print("\nUniversal BiLSTM Model Summary:")
 universal_model_bilstm.summary()
 
 # =============================================================================
-# Step 6: Split Data into Training and Testing Sets - This is where I currently am at the moment
+# Step 6: Split Data into Training and Testing Sets - Training on the first 80% chronologically, and the last 20% on the most recent Bitcoin data
 # =============================================================================
 
-split_idx = int(0.8 * len(X))
-X_train = X[:split_idx]
-y_train = y[:split_idx]
-X_test = X[split_idx:]
-y_test = y[split_idx:]
+split_idx = int(len(df) * 0.8) 
+
+train_df = df[:split_idx]
+test_df = df[split_idx:]
+
+X_train, y_train = create_universal_sequences(train_df, time_steps)
+X_test, y_test = create_universal_sequences(test_df, time_steps)
 
 # =============================================================================
 # Step 7: Set Up Callbacks

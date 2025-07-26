@@ -37,5 +37,6 @@ df['overall'] = overall_list
 df['positive_score'] = positive_scores
 df['neutral_score'] = neutral_scores
 df['negative_score'] = negative_scores
+
 # Save to CSV
 df.to_csv('vader_news.csv', index=False)
