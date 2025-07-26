@@ -2,6 +2,6 @@ import pandas as pd
 
 df = pd.read_csv('data/vader_news.csv')
 
-df['combined'] = df['positive_score'] - df['negative_score']
+single = df[['positive_score', 'negative_score', 'neutral_score']]
 
-df.to_csv('distilbert_scores_only.csv', index=False)
+single.to_csv('data/vader_score_only.csv', index=False)
