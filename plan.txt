@@ -1,0 +1,13 @@
+# PLAN FOR CREATING THE SENTIMENT + BiLSTM STOCK PREDICTOR
+
+Step 1: Set up the primary BiLSTM model with quantitative Bitcoin data from 2023 ONLY (Finished)
+
+Step 2: Integrate attention mechanisms into the currently used script for sentiment scoring
+
+Step 3: Analyze all 2.6 million tweets and convert to a readable CSV file
+
+Step 4: Integrate with quantitative BiLSTM model until working and improved
+
+Step 5: Continue to tailor until it is working
+
+Extra: Deploy on website
