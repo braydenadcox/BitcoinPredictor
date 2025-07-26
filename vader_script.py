@@ -3,10 +3,11 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 # Gets the News articles
 print("Vader is running")
-df = pd.read_csv('../../../news.csv')
+df = pd.read_csv('data/tweetSample.csv')
+print(df.columns)
 
 #combines the title and summary
-df['combined'] = df['title'].fillna('') + ': ' + df['summary'].fillna('')
+df['combined'] = df['tweet_text'].fillna('')
 # Prepare lists to store results
 overall_list = []
 positive_scores = []
