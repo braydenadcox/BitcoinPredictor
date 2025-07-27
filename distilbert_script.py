@@ -1,6 +1,7 @@
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
 import torch
 import pandas as pd
+import numpy as np
 
 # Load CSV
 df = pd.read_csv('data/tweetSample.csv')
@@ -23,7 +24,31 @@ model = model.to(device)
 # Batch size and model configuration, can easily go up from the base layer of 128
 batch_size = 128
 
-# Preocess the DataFrame in batches
+
+# =============================================================================
+# IMPLEMENTATION OF INFLUENCE FUNCTION FOR SENTIMENT ANALYSIS
+# =============================================================================
+
+for col in ['like_count', 'reply_count', 'retweet_count', 'quote_count', 'followers_count']:
+    df[col] = df[col].fillna(0)
+
+wl, wr, wrt, wq, wf = 0.3, 0.1, 0.5, 0.3, 2.0
+
+df['influence_raw'] = (
+    wl * np.log1p(df['like_count']) +
+    wr * np.log1p(df['reply_count']) +
+    wrt * np.log1p(df['retweet_count']) +
+    wq * np.log1p(df['quote_count']) +
+    wf * np.log1p(df['followers_count'])
+)
+
+influence_max = df['influence_raw'].max() or 1.0
+df['influence_scaled'] = 0.5 + 4.5 * (df['influence_raw'] / influence_max)
+
+# =============================================================================
+# DATAFRAME PREPARATION AND PROCESSING BEGINS HERE
+# =============================================================================
+
 for i in range(0, len(df), batch_size):
     batch = df['combined'][i:i + batch_size]
 
@@ -48,5 +73,14 @@ for i in range(0, len(df), batch_size):
 df['positive_score'] = positive_scores
 df['negative_score'] = negative_scores
 
+df['weighted_positive'] = df['positive_score'] * df['influence_scaled']
+df['weighted_negative'] = df['negative_score'] * df['influence_scaled']
+
+
 # Save to CSV
-df.to_csv('distilbert_finetuned_sentiment.csv', index=False)
+df.to_csv('distilbert_finetuned_influence_sentiment.csv', index=False)
+
+
+# Testing output and results
+print(df[['username', 'followers_count', 'influence_raw', 'influence_scaled', 'positive_score', 'weighted_positive']].sort_values('followers_count', ascending=False).head(10))
+print(df['influence_scaled'].describe())
