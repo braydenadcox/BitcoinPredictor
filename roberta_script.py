@@ -18,6 +18,30 @@ batch_size = 128
 # Lists to hold sentiment scores
 sentiment_score = []
 
+# =============================================================================
+# IMPLEMENTATION OF INFLUENCE FUNCTION FOR SENTIMENT ANALYSIS
+# =============================================================================
+
+for col in ['like_count', 'reply_count', 'retweet_count', 'quote_count', 'followers_count']:
+    df[col] = df[col].fillna(0)
+
+wl, wr, wrt, wq, wf = 0.3, 0.1, 0.5, 0.3, 2.0
+
+df['influence_raw'] = (
+    wl * np.log1p(df['like_count']) +
+    wr * np.log1p(df['reply_count']) +
+    wrt * np.log1p(df['retweet_count']) +
+    wq * np.log1p(df['quote_count']) +
+    wf * np.log1p(df['followers_count'])
+)
+
+influence_max = df['influence_raw'].max() or 1.0
+df['influence_scaled'] = 1.0 + (df['influence_raw'] / influence_max)
+
+# =============================================================================
+# DATAFRAME PREPARATION AND PROCESSING BEGINS HERE
+# =============================================================================
+
 for i in range(0, len(df), batch_size):
     batch = df['tweet_text'][i:i + batch_size].fillna('')
 
@@ -34,4 +58,5 @@ for i in range(0, len(df), batch_size):
     sentiment_score.extend(batch_scores)
 
 df['sentiment_score'] = sentiment_score
-df.to_csv('data/roberta_sentiment.csv', index=False)
+df['weighted_sentiment'] = df['sentiment_score'] * df['influence_scaled']
+df.to_csv('data/roberta_weighed_sentiment.csv', index=False)

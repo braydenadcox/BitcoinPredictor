@@ -43,7 +43,7 @@ df['influence_raw'] = (
 )
 
 influence_max = df['influence_raw'].max() or 1.0
-df['influence_scaled'] = 0.5 + 4.5 * (df['influence_raw'] / influence_max)
+df['influence_scaled'] = 1.0 * (df['influence_raw'] / influence_max)
 
 # =============================================================================
 # DATAFRAME PREPARATION AND PROCESSING BEGINS HERE
